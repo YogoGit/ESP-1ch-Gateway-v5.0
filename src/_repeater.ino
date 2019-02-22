@@ -12,35 +12,33 @@
 //
 // Author: Maarten Westenberg (mw12554@hotmail.com)
 //
-// This file contains code for using the single channel gateway also as a sensor node. 
+// This file contains code for using the single channel gateway also as a sensor node.
 // Please specify the DevAddr and the AppSKey below (and on your LoRa backend).
 // Also you will have to choose what sensors to forward to your application.
 //
 // ============================================================================
-		
-#if REPEATER==1
+
+#if REPEATER == 1
 
 #define _ICHAN 0
 #define _OCHAN 1
 
 #ifdef _TTNSERVER
-#error "Please undefined _THINGSERVER, for REAPETR shutdown WiFi"
+#error "Please undefined _THINGSERVER, for REPEATER shutdown WiFi"
 #endif
 
 // Send a LoRa message out from the gateway transmitter
 // XXX Maybe we should block the received ontul the message is transmitter
-
-int sendLora(char *msg, int len) {
-	// Check whete len is not exceeding maximum length
-	Serial.print("sendLora:: ");
-	
-	for (int i=0; i< len; i++) {
-		Serial.print(msg[1],HEX);
-		Serial.print('.');
-	}
-	
-	if (debug>=2) Serial.flush();
-	return(1);
+int sendLora(char *msg, int len)
+{
+    // Check whether len does not exceedmaximum length
+    Serial.print("sendLora:: ");
+    for (int i = 0; i < len; i++) {
+        Serial.print(msg[1], HEX);
+        Serial.print('.');
+    }
+    if (debug>= 2)
+        Serial.flush();
+    return 1;
 }
-
-#endif //REPEATER==1
+#endif // REPEATER == 1

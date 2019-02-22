@@ -3,8 +3,8 @@
 // Version 5.3.3
 // Date: 2018-08-25
 //
-// 	based on work done by Thomas Telkamp for Raspberry PI 1ch gateway
-//	and many others.
+//     based on work done by Thomas Telkamp for Raspberry PI 1ch gateway
+//    and many others.
 //
 // All rights reserved. This program and the accompanying materials
 // are made available under the terms of the MIT License
@@ -19,53 +19,48 @@
 // and transmit packages/messages.
 // ========================================================================================
 //
-
-#if OLED>=1
-
-
-// ----------------------------------------------------------------	
+#if OLED >= 1
+// ----------------------------------------------------------------
 // Initilize the OLED functions.
 //
 // ----------------------------------------------------------------
-void init_oLED() 
+void init_oLED()
 {
 #if defined OLED_RST
-	pinMode(OLED_RST,OUTPUT);
-	digitalWrite(OLED_RST, LOW); 	// low to reset OLED
-	delay(50); 
-	digitalWrite(OLED_RST, HIGH); 	// must be high to turn on OLED
-	delay(50);
-#else
+    // low to reset OLED, then high to turn on OLED
+    pinMode(OLED_RST, OUTPUT);
+    digitalWrite(OLED_RST, LOW);
+    delay(50);
+    digitalWrite(OLED_RST, HIGH);
+    delay(50);
 #endif
-	// Initialising the UI will init the display too.
-	display.init();
-	display.flipScreenVertically();
-	display.setFont(ArialMT_Plain_24);
-	display.setTextAlignment(TEXT_ALIGN_LEFT);
-	display.drawString(0, 24, "STARTING");
-	display.display();
+    // Initialising the UI will init the display too.
+    display.init();
+    display.flipScreenVertically();
+    display.setFont(ArialMT_Plain_24);
+    display.setTextAlignment(TEXT_ALIGN_LEFT);
+    display.drawString(0, 24, "STARTING");
+    display.display();
 }
 
 // ----------------------------------------------------------------
 // Activate the OLED
 //
 // ----------------------------------------------------------------
-void acti_oLED() 
+void acti_oLED()
 {
-	// Initialising the UI will init the display too.
-	display.clear();
-	
-#if OLED==1
-	display.setFont(ArialMT_Plain_16);
-	display.drawString(0, 16, "READY,  SSID=");
-	display.drawString(0, 32, WiFi.SSID());
-#elif OLED==2
-	display.setFont(ArialMT_Plain_16);
-	display.drawString(0, 16, "READY,  SSID=");
-	display.drawString(0, 32, WiFi.SSID());
-#endif
+    // Initialising the UI will init the display too.
+    display.clear();
 
-	display.display();
+#if OLED == 1
+    display.setFont(ArialMT_Plain_16);
+#elif OLED == 2
+    display.setFont(ArialMT_Plain_16);
+#endif
+    display.drawString(0, 16, "READY, SSID=");
+    display.drawString(0, 32, WiFi.SSID());
+
+    display.display();
 }
 
 // ----------------------------------------------------------------
@@ -73,27 +68,24 @@ void acti_oLED()
 // Note: The whole message must fit in the buffer
 //
 // ----------------------------------------------------------------
-void msg_oLED(String tim, String sf) {
+void msg_oLED(String tim, String sf)
+{
     display.clear();
     display.setFont(ArialMT_Plain_16);
     display.setTextAlignment(TEXT_ALIGN_LEFT);
-	
-	display.drawString(0, 48, "LEN: " );
-//    display.drawString(40, 48, String((int)messageLength) );
+
+    display.drawString(0, 48, "LEN: ");
     display.display();
-	yield();
+    yield();
 }
 
 // ----------------------------------------------------------------
 // Print the OLED address in use
 //
 // ----------------------------------------------------------------
-void addr_oLED() 
+void addr_oLED()
 {
-	Serial.print(F("OLED_ADDR=0x"));
-	Serial.println(OLED_ADDR, HEX);
+    Serial.print(F("OLED_ADDR=0x"));
+    Serial.println(OLED_ADDR, HEX);
 }
-
-
-
 #endif
