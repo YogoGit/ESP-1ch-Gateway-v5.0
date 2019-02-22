@@ -361,23 +361,27 @@ NOTE: Frequency hopping is experimental and does not work correctly.
 
 # Dependencies
 
-The software is dependent on several pieces of software, the Arduino IDE for ESP8266 
-being the most important. Several other libraries are also used by this program, 
-make sure you install those libraries with the IDE:
+The software is dependent on several pieces of software, PlatformIO 
+being the most important. Several other libraries are also used by 
+this program, most are automatically downloaded or already bundled
+in the repo.
 
+Custom:
 - gBase64 library, The gBase library is actually a base64 library made 
 	by Adam Rudd (url=https://github.com/adamvr/arduino-base64). I changed the name because I had
 	another base64 library installed on my system and they did not coexist well.
+- AES library (taken from ideetron.nl) for downstream messages
+
+Standad libraries (downloaded):
 - Time library (http://playground.arduino.cc/code/time)
 - Arduino JSON; Needed to decode downstream messages
-- SimpleTimer; ot yet used, but reserved for interrupt and timing
+- SimpleTimer; not yet used, but reserved for interrupt and timing
 - WiFiManager
 - ESP8266 Web Server
 - Streaming library, used in the wwwServer part
-- AES library (taken from ideetron.nl) for downstream messages
 - Time
 
-For convenience, the libraries are also found in this github repository in the libraries directory. 
+For convenience, only the custom libraries are also found in this github repository in the libraries directory. 
 Please note that they are NOT part of the ESP 1channel gateway and may have their own licensing.
 However, these libraries are not part of the single-channel Gateway software.
 
@@ -396,7 +400,6 @@ The following things are still on my wish list to make to the single channel gat
 - Support for ESP32 and RFM95 on 433 MHz
 - Use the SPIFFS for storing .css files
 - Look at CLass B and C support
-
 
 
 # License
