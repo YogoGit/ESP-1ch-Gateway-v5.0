@@ -13,16 +13,16 @@
 //
 // NO WARRANTY OF ANY KIND IS PROVIDED
 //
-// The protocols and specifications used for this 1ch gateway: 
+// The protocols and specifications used for this 1ch gateway:
 // 1. LoRA Specification version V1.0 and V1.1 for Gateway-Node communication
-//	
+//
 // 2. Semtech Basic communication protocol between Lora gateway and server version 3.0.0
 //	https://github.com/Lora-net/packet_forwarder/blob/master/PROTOCOL.TXT
 //
-// Notes: 
+// Notes:
 // - Once call gethostbyname() to get IP for services, after that only use IP
 //	 addresses (too many gethost name makes the ESP unstable)
-// - Only call yield() in main stream (not for background NTP sync). 
+// - Only call yield() in main stream (not for background NTP sync).
 //
 // ----------------------------------------------------------------------------------------
 
@@ -160,7 +160,7 @@ float lon			= _LON;
 int   alt			= _ALT;
 char platform[24]	= _PLATFORM; 				// platform definition
 char email[40]		= _EMAIL;    				// used for contact email
-char description[64]= _DESCRIPTION;				// used for free form description 
+char description[64]= _DESCRIPTION;				// used for free form description
 
 // define servers
 
@@ -197,14 +197,14 @@ uint16_t frameCount=0;							// We write this to SPIFF file
 
 // volatile bool inSPI This initial value of mutex is to be free,
 // which means that its value is 1 (!)
-// 
+//
 int mutexSPI = 1;
 
 // ----------------------------------------------------------------------------
 // FORWARD DECARATIONS
 // These forward declarations are done since other .ino fils are linked by the
-// compiler/linker AFTER the main ESP-sc-gway.ino file. 
-// And espcesially when calling functions with ICACHE_RAM_ATTR the complier 
+// compiler/linker AFTER the main ESP-sc-gway.ino file.
+// And espcesially when calling functions with ICACHE_RAM_ATTR the complier
 // does not want this.
 // Solution can also be to pecify less STRICT compile options in Makefile
 // ----------------------------------------------------------------------------
@@ -251,7 +251,7 @@ void die(const char *s)
 
 	delay(50);
 	// system_restart();						// SDK function
-	// ESP.reset();				
+	// ESP.reset();
 	abort();									// Within a second
 }
 
@@ -327,7 +327,7 @@ void ftoa(float f, char *val, int p) {
 	int j=1;
 	int ival, fval;
 	char b[7] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-	
+
 	for (int i=0; i< p; i++) { j= j*10; }
 
 	ival = (int) f;								// Make integer part
@@ -337,12 +337,12 @@ void ftoa(float f, char *val, int p) {
 	if ((f<0) && (ival == 0)) strcat(val, "-");
 	strcat(val,itoa(ival,b,10));				// Copy integer part first, base 10, null terminated
 	strcat(val,".");							// Copy decimal point
-	
+
 	itoa(fval,b,10);							// Copy fraction part base 10
 	for (int i=0; i<(p-strlen(b)); i++) {
 		strcat(val,"0"); 						// first number of 0 of faction?
 	}
-	
+
 	// Fraction can be anything from 0 to 10^p , so can have less digits
 	strcat(val,b);
 }
@@ -361,7 +361,7 @@ int sendNtpRequest(IPAddress timeServerIP) {
 	byte packetBuffer[NTP_PACKET_SIZE];
 
 	memset(packetBuffer, 0, NTP_PACKET_SIZE);	// Zeroise the buffer.
-	
+
 	packetBuffer[0]  = 0b11100011;   			// LI, Version, Mode
 	packetBuffer[1]  = 0;						// Stratum, or type of clock
 	packetBuffer[2]  = 6;						// Polling Interval
@@ -370,13 +370,13 @@ int sendNtpRequest(IPAddress timeServerIP) {
 	packetBuffer[12] = 49;
 	packetBuffer[13] = 0x4E;
 	packetBuffer[14] = 49;
-	packetBuffer[15] = 52;	
+	packetBuffer[15] = 52;
 
-	
+
 	if (!sendUdp( (IPAddress) timeServerIP, (int) 123, packetBuffer, NTP_PACKET_SIZE)) {
 		gwayConfig.ntpErr++;
 		gwayConfig.ntpErrTime = now();
-		return(0);	
+		return(0);
 	}
 	return(1);
 }
@@ -390,25 +390,25 @@ int sendNtpRequest(IPAddress timeServerIP) {
 time_t getNtpTime()
 {
 	gwayConfig.ntps++;
-	
+
     if (!sendNtpRequest(ntpServer))					// Send the request for new time
 	{
 		if (( debug>=0 ) && ( pdebug & P_MAIN ))
 			Serial.println(F("M sendNtpRequest failed"));
 		return(0);
 	}
-	
+
 	const int NTP_PACKET_SIZE = 48;					// Fixed size of NTP record
 	byte packetBuffer[NTP_PACKET_SIZE];
 	memset(packetBuffer, 0, NTP_PACKET_SIZE);		// Set buffer cntents to zero
 
     uint32_t beginWait = millis();
 	delay(10);
-    while (millis() - beginWait < 1500) 
+    while (millis() - beginWait < 1500)
 	{
 		int size = Udp.parsePacket();
 		if ( size >= NTP_PACKET_SIZE ) {
-		
+
 			if (Udp.read(packetBuffer, NTP_PACKET_SIZE) < NTP_PACKET_SIZE) {
 				break;
 			}
@@ -422,13 +422,13 @@ time_t getNtpTime()
 				// UTC is 1 TimeZone correction when no daylight saving time
 				return(secs - 2208988800UL + NTP_TIMEZONES * SECS_IN_HOUR);
 			}
-			Udp.flush();	
+			Udp.flush();
 		}
 		delay(100);									// Wait 100 millisecs, allow kernel to act when necessary
     }
 
 	Udp.flush();
-	
+
 	// If we are here, we could not read the time from internet
 	// So increase the counter
 	gwayConfig.ntpErr++;
@@ -458,7 +458,7 @@ void setupTime() {
 
 // ----------------------------------------------------------------------------
 // Read DOWN a package from UDP socket, can come from any server
-// Messages are received when server responds to gateway requests from LoRa nodes 
+// Messages are received when server responds to gateway requests from LoRa nodes
 // (e.g. JOIN requests etc.) or when server has downstream data.
 // We respond only to the server that sent us a message!
 // Note: So normally we can forget here about codes that do upstream
@@ -474,7 +474,7 @@ int readUdp(int packetSize)
 {
 	uint8_t protocol;
 	uint16_t token;
-	uint8_t ident; 
+	uint8_t ident;
 	uint8_t buff[32]; 						// General buffer to use for UDP, set to 64
 	uint8_t buff_down[RX_BUFF_SIZE];		// Buffer for downstream
 
@@ -490,7 +490,7 @@ int readUdp(int packetSize)
 	}
 
 	yield();
-	
+
 	if (packetSize > RX_BUFF_SIZE) {
 #if DUSB>=1
 		Serial.print(F("readUDP:: ERROR package of size: "));
@@ -499,7 +499,7 @@ int readUdp(int packetSize)
 		Udp.flush();
 		return(-1);
 	}
-  
+
 	// We assume here that we know the originator of the message
 	// In practice however this can be any sender!
 	if (Udp.read(buff_down, packetSize) < packetSize) {
@@ -526,7 +526,7 @@ int readUdp(int packetSize)
 		gwayConfig.ntpErrTime = now();
 		return(0);
 	}
-	
+
 	// If it is not NTP it must be a LoRa message for gateway or node
 	else {
 		uint8_t *data = (uint8_t *) ((uint8_t *)buff_down + 4);
@@ -563,17 +563,17 @@ int readUdp(int packetSize)
 			}
 #endif
 		break;
-	
+
 		// This message is sent by the server to acknoledge receipt of a
 		// (sensor) message sent with the code above.
 		case PKT_PUSH_ACK:	// 0x01 DOWN
 #if DUSB>=1
 			if (( debug>=2) && (pdebug & P_MAIN )) {
-				Serial.print(F("M PKT_PUSH_ACK:: size ")); 
+				Serial.print(F("M PKT_PUSH_ACK:: size "));
 				Serial.print(packetSize);
-				Serial.print(F(" From ")); 
+				Serial.print(F(" From "));
 				Serial.print(remoteIpNo);
-				Serial.print(F(", port ")); 
+				Serial.print(F(", port "));
 				Serial.print(remotePortNo);
 				Serial.print(F(", token: "));
 				Serial.println(token, HEX);
@@ -581,14 +581,14 @@ int readUdp(int packetSize)
 			}
 #endif
 		break;
-	
+
 		case PKT_PULL_DATA:	// 0x02 UP
 #if DUSB>=1
 			Serial.print(F(" Pull Data"));
 			Serial.println();
 #endif
 		break;
-	
+
 		// This message type is used to confirm OTAA message to the node
 		// XXX This message format may also be used for other downstream communucation
 		case PKT_PULL_RESP:	// 0x03 DOWN
@@ -598,11 +598,11 @@ int readUdp(int packetSize)
 			}
 #endif
 //			lastTmst = micros();					// Store the tmst this package was received
-			
+
 			// Send to the LoRa Node first (timing) and then do reporting to Serial
 			_state=S_TX;
 			sendTime = micros();					// record when we started sending the message
-			
+
 			if (sendPacket(data, packetSize-4) < 0) {
 #if DUSB>=1
 				if ( debug>=0 ) {
@@ -656,31 +656,31 @@ int readUdp(int packetSize)
 				}
 #endif
 			}
-			
+
 			yield();
 #if DUSB>=1
 			if (( debug >=1 ) && (pdebug & P_MAIN )) {
-				Serial.print(F("M PKT_PULL_RESP:: size ")); 
+				Serial.print(F("M PKT_PULL_RESP:: size "));
 				Serial.print(packetSize);
-				Serial.print(F(" From ")); 
+				Serial.print(F(" From "));
 				Serial.print(remoteIpNo);
-				Serial.print(F(", port ")); 
-				Serial.print(remotePortNo);	
+				Serial.print(F(", port "));
+				Serial.print(remotePortNo);
 				Serial.print(F(", data: "));
 				data = buff_down + 4;
 				data[packetSize] = 0;
 				Serial.print((char *)data);
 				Serial.println(F("..."));
 			}
-#endif		
+#endif
 		break;
-	
+
 		case PKT_PULL_ACK:	// 0x04 DOWN; the server sends a PULL_ACK to confirm PULL_DATA receipt
 #if DUSB>=1
 			if (( debug >= 2 ) && (pdebug & P_MAIN )) {
 				Serial.print(F("M PKT_PULL_ACK:: size ")); Serial.print(packetSize);
 				Serial.print(F(" From ")); Serial.print(remoteIpNo);
-				Serial.print(F(", port ")); Serial.print(remotePortNo);	
+				Serial.print(F(", port ")); Serial.print(remotePortNo);
 				Serial.print(F(", data: "));
 				for (int i=0; i<packetSize; i++) {
 					Serial.print(buff_down[i],HEX);
@@ -690,7 +690,7 @@ int readUdp(int packetSize)
 			}
 #endif
 		break;
-	
+
 		default:
 #if GATEWAYMGT==1
 			// For simplicity, we send the first 4 bytes too
@@ -706,7 +706,7 @@ int readUdp(int packetSize)
 		}
 #if DUSB>=2
 		if (debug>=1) {
-			Serial.print(F("readUdp:: returning=")); 
+			Serial.print(F("readUdp:: returning="));
 			Serial.println(packetSize);
 		}
 #endif
@@ -718,7 +718,7 @@ int readUdp(int packetSize)
 
 // ----------------------------------------------------------------------------
 // Send UP an UDP/DGRAM message to the MQTT server
-// If we send to more than one host (not sure why) then we need to set sockaddr 
+// If we send to more than one host (not sure why) then we need to set sockaddr
 // before sending.
 // Parameters:
 //	IPAddress
@@ -751,7 +751,7 @@ int sendUdp(IPAddress server, int port, uint8_t *msg, int length) {
 	if (( debug>=3 ) && ( pdebug & P_MAIN )) {
 		Serial.println(F("M WiFi connected"));
 	}
-#endif	
+#endif
 	if (!Udp.beginPacket(server, (int) port)) {
 #if DUSB>=1
 		if (( debug>=1 ) && ( pdebug & P_MAIN )) {
@@ -760,9 +760,9 @@ int sendUdp(IPAddress server, int port, uint8_t *msg, int length) {
 #endif
 		return(0);
 	}
-	
+
 	yield();
-	
+
 
 	if (Udp.write((unsigned char *)msg, length) != length) {
 #if DUSB>=1
@@ -773,9 +773,9 @@ int sendUdp(IPAddress server, int port, uint8_t *msg, int length) {
 		Udp.endPacket();						// Close UDP
 		return(0);								// Return error
 	}
-	
+
 	yield();
-	
+
 	if (!Udp.endPacket()) {
 #if DUSB>=1
 		if (debug>=1) {
@@ -789,7 +789,7 @@ int sendUdp(IPAddress server, int port, uint8_t *msg, int length) {
 }//sendUDP
 
 // ----------------------------------------------------------------------------
-// UDPconnect(): connect to UDP (which is a local thing, after all UDP 
+// UDPconnect(): connect to UDP (which is a local thing, after all UDP
 // connections do not exist.
 // Parameters:
 //	<None>
@@ -805,7 +805,7 @@ bool UDPconnect() {
 		Serial.print(F("Local UDP port="));
 		Serial.println(localPort);
 	}
-#endif	
+#endif
 	if (Udp.begin(localPort) == 1) {
 #if DUSB>=1
 		if (debug>=1) Serial.println(F("Connection successful"));
@@ -835,10 +835,10 @@ void pullData() {
     uint8_t pullDataReq[12]; 								// status report as a JSON object
     int pullIndex=0;
 	int i;
-	
+
 	uint8_t token_h = (uint8_t)rand(); 						// random token
     uint8_t token_l = (uint8_t)rand();						// random token
-	
+
     // pre-fill the data buffer with fixed fields
     pullDataReq[0]  = PROTOCOL_VERSION;						// 0x01
     pullDataReq[1]  = token_h;
@@ -854,11 +854,11 @@ void pullData() {
     pullDataReq[10] = MAC_array[4];
     pullDataReq[11] = MAC_array[5];
     //pullDataReq[12] = 0/00; 								// add string terminator, for safety
-	
+
     pullIndex = 12;											// 12-byte header
-	
+
     //send the update
-	
+
 	uint8_t *pullPtr;
 	pullPtr = pullDataReq,
 #ifdef _TTNSERVER
@@ -897,7 +897,7 @@ void pullData() {
 
 // ----------------------------------------------------------------------------
 // Send UP periodic status message to server even when we do not receive any
-// data. 
+// data.
 // Parameters:
 //	- <none>
 // ----------------------------------------------------------------------------
@@ -912,13 +912,13 @@ void sendstat() {
     int stat_index=0;
 	uint8_t token_h   = (uint8_t)rand(); 					// random token
     uint8_t token_l   = (uint8_t)rand();					// random token
-	
+
     // pre-fill the data buffer with fixed fields
     status_report[0]  = PROTOCOL_VERSION;					// 0x01
 	status_report[1]  = token_h;
     status_report[2]  = token_l;
     status_report[3]  = PKT_PUSH_DATA;						// 0x00
-	
+
 	// READ MAC ADDRESS OF ESP8266, and return unique Gateway ID consisting of MAC address and 2bytes 0xFF
     status_report[4]  = MAC_array[0];
     status_report[5]  = MAC_array[1];
@@ -930,23 +930,23 @@ void sendstat() {
     status_report[11] = MAC_array[5];
 
     stat_index = 12;										// 12-byte header
-	
+
     t = now();												// get timestamp for statistics
-	
-	// XXX Using CET as the current timezone. Change to your timezone	
+
+	// XXX Using CET as the current timezone. Change to your timezone
 	sprintf(stat_timestamp, "%04d-%02d-%02d %02d:%02d:%02d CET", year(),month(),day(),hour(),minute(),second());
 	yield();
-	
+
 	ftoa(lat,clat,5);										// Convert lat to char array with 5 decimals
 	ftoa(lon,clon,5);										// As IDE CANNOT prints floats
-	
+
 	// Build the Status message in JSON format, XXX Split this one up...
 	delay(1);
-	
-    int j = snprintf((char *)(status_report + stat_index), STATUS_SIZE-stat_index, 
-		"{\"stat\":{\"time\":\"%s\",\"lati\":%s,\"long\":%s,\"alti\":%i,\"rxnb\":%u,\"rxok\":%u,\"rxfw\":%u,\"ackr\":%u.0,\"dwnb\":%u,\"txnb\":%u,\"pfrm\":\"%s\",\"mail\":\"%s\",\"desc\":\"%s\"}}", 
+
+    int j = snprintf((char *)(status_report + stat_index), STATUS_SIZE-stat_index,
+		"{\"stat\":{\"time\":\"%s\",\"lati\":%s,\"long\":%s,\"alti\":%i,\"rxnb\":%u,\"rxok\":%u,\"rxfw\":%u,\"ackr\":%u.0,\"dwnb\":%u,\"txnb\":%u,\"pfrm\":\"%s\",\"mail\":\"%s\",\"desc\":\"%s\"}}",
 		stat_timestamp, clat, clon, (int)alt, cp_nb_rx_rcv, cp_nb_rx_ok, cp_up_pkt_fwd, 0, 0, 0, platform, email, description);
-		
+
 	yield();												// Give way to the internal housekeeping of the ESP8266
 
     stat_index += j;
@@ -959,14 +959,14 @@ void sendstat() {
 		Serial.print(F("> "));
 		Serial.println((char *)(status_report+12));			// DEBUG: display JSON stat
 	}
-#endif	
+#endif
 	if (stat_index > STATUS_SIZE) {
 #if DUSB>=1
 		Serial.println(F("A sendstat:: ERROR buffer too big"));
 #endif
 		return;
 	}
-	
+
     //send the update
 #ifdef _TTNSERVER
     sendUdp(ttnServer, _TTNPORT, status_report, stat_index);
@@ -995,7 +995,7 @@ void setup() {
 	MAC_char[18] = 0;
 
 	Serial.begin(_BAUDRATE);						// As fast as possible for bus
-	delay(100);	
+	delay(100);
 
 #if _GPS==1
 	// Pins are define in LoRaModem.h together with other pins
@@ -1011,6 +1011,9 @@ void setup() {
 #elif _LFREQ==868
 	Serial.print(freqs[0]);
 	Serial.print(F(" EU868"));
+#elif _LFREQ==915
+	Serial.print(freqs[0]);
+	Serial.print(F(" US915"));
 #endif
 	Serial.println();
 #endif
@@ -1021,7 +1024,6 @@ void setup() {
 #endif
 #endif
 
-
 #if DUSB>=1
 	Serial.flush();
 
@@ -1030,9 +1032,7 @@ void setup() {
 	if (SPIFFS.begin()) {
 		Serial.println(F("SPIFFS init success"));
 	}
-	else {
-	}
-#endif	
+#endif
 #if _SPIFF_FORMAT>=1
 #if DUSB>=1
 	if (( debug >= 0 ) && ( pdebug & P_MAIN )) {
@@ -1060,9 +1060,9 @@ void setup() {
 
 	delay(500);
 	yield();
-#if DUSB>=1	
+#if DUSB>=1
 	if (debug>=1) {
-		Serial.print(F("debug=")); 
+		Serial.print(F("debug="));
 		Serial.println(debug);
 		yield();
 	}
@@ -1071,15 +1071,15 @@ void setup() {
 	WiFi.mode(WIFI_STA);
 	WiFi.setAutoConnect(true);
 	//WiFi.begin();
-	
+
 	WlanReadWpa();								// Read the last Wifi settings from SPIFFS into memory
 
 	WiFi.macAddress(MAC_array);
-	
-    sprintf(MAC_char,"%02x:%02x:%02x:%02x:%02x:%02x",
+
+	sprintf(MAC_char,"%02x:%02x:%02x:%02x:%02x:%02x",
 		MAC_array[0],MAC_array[1],MAC_array[2],MAC_array[3],MAC_array[4],MAC_array[5]);
 	Serial.print("MAC: ");
-    Serial.print(MAC_char);
+	Serial.print(MAC_char);
 	Serial.print(F(", len="));
 	Serial.println(strlen(MAC_char));
 
@@ -1091,8 +1091,8 @@ void setup() {
 		Serial.print(F("Error Wifi network connect "));
 		Serial.println();
 		yield();
-	}	
-	
+	}
+
 	// After there is a WiFi router connection, we can also set the hostname.
 #if ESP32_ARCH==1
 	sprintf(hostname, "%s%02x%02x%02x", "esp32-", MAC_array[3], MAC_array[4], MAC_array[5]);
@@ -1100,9 +1100,9 @@ void setup() {
 #else
 	sprintf(hostname, "%s%02x%02x%02x", "esp8266-", MAC_array[3], MAC_array[4], MAC_array[5]);
 	wifi_station_set_hostname( hostname );
-#endif	
+#endif
 
-	
+
 	Serial.print(F("Host "));
 #if ESP32_ARCH==1
 	Serial.print(WiFi.getHostname());
@@ -1115,14 +1115,14 @@ void setup() {
 	Serial.print(WiFi.localIP());
 	Serial.println();
 	delay(200);
-	
+
 	// If we are here we are connected to WLAN
 	// So now test the UDP function
 	if (!UDPconnect()) {
 		Serial.println(F("Error UDPconnect"));
 	}
 	delay(200);
-	
+
 	// Pins are defined and set in loraModem.h
     pinMode(pins.ss, OUTPUT);
 	pinMode(pins.rst, OUTPUT);
@@ -1138,10 +1138,10 @@ void setup() {
 #endif
 
 	delay(500);
-	
+
 	// We choose the Gateway ID to be the Ethernet Address of our Gateway card
     // display results of getting hardware address
-	// 
+	//
     Serial.print("Gateway ID: ");
 	printHexDigit(MAC_array[0]);
     printHexDigit(MAC_array[1]);
@@ -1181,7 +1181,7 @@ void setup() {
 	// The Over the AIr updates are supported when we have a WiFi connection.
 	// The NTP time setting does not have to be precise for this function to work.
 #if A_OTA==1
-	setupOta(hostname);										// Uses wwwServer 
+	setupOta(hostname);										// Uses wwwServer
 #endif
 
 	// Set the NTP Time
@@ -1190,13 +1190,13 @@ void setup() {
 	setupTime();											// Set NTP time host and interval
 #else
 	// If not using the standard libraries, do a manual setting
-	// of the time. This meyhod works more reliable than the 
+	// of the time. This meyhod works more reliable than the
 	// interrupt driven method.
-	
+
 	//setTime((time_t)getNtpTime());
 	while (timeStatus() == timeNotSet) {
 #if DUSB>=1
-		if (( debug>=0 ) && ( pdebug & P_MAIN )) 
+		if (( debug>=0 ) && ( pdebug & P_MAIN ))
 			Serial.println(F("M setupTime:: Time not set (yet)"));
 #endif
 		delay(500);
@@ -1216,30 +1216,30 @@ void setup() {
 #endif
 #endif //NTP_INTR
 
-#if A_SERVER==1	
+#if A_SERVER==1
 	// Setup the webserver
 	setupWWW();
 #endif
 
 	delay(100);												// Wait after setup
-	
+
 	// Setup ad initialise LoRa state machine of _loramModem.ino
 	_state = S_INIT;
 	initLoraModem();
-	
+
 	if (_cad) {
 		_state = S_SCAN;
 		sf = SF7;
 		cadScanner();										// Always start at SF7
 	}
-	else { 
+	else {
 		_state = S_RX;
 		rxLoraModem();
 	}
 	LoraUp.payLoad[0]= 0;
 	LoraUp.payLength = 0;						// Init the length to 0
 
-	// init interrupt handlers, which are shared for GPIO15 / D8, 
+	// init interrupt handlers, which are shared for GPIO15 / D8,
 	// we switch on HIGH interrupts
 	if (pins.dio0 == pins.dio1) {
 		//SPI.usingInterrupt(digitalPinToInterrupt(pins.dio0));
@@ -1250,9 +1250,9 @@ void setup() {
 		//SPI.usingInterrupt(digitalPinToInterrupt(pins.dio0));
 		//SPI.usingInterrupt(digitalPinToInterrupt(pins.dio1));
 		attachInterrupt(pins.dio0, Interrupt_0, RISING);	// Separate interrupts
-		attachInterrupt(pins.dio1, Interrupt_1, RISING);	// Separate interrupts		
+		attachInterrupt(pins.dio1, Interrupt_1, RISING);	// Separate interrupts
 	}
-	
+
 	writeConfig( CONFIGFILE, &gwayConfig);					// Write config
 
 	// activate OLED display
@@ -1269,13 +1269,13 @@ void setup() {
 // ----------------------------------------------------------------------------
 // LOOP
 // This is the main program that is executed time and time again.
-// We need to give way to the backend WiFi processing that 
+// We need to give way to the backend WiFi processing that
 // takes place somewhere in the ESP8266 firmware and therefore
 // we include yield() statements at important points.
 //
 // Note: If we spend too much time in user processing functions
 //	and the backend system cannot do its housekeeping, the watchdog
-// function will be executed which means effectively that the 
+// function will be executed which means effectively that the
 // program crashes.
 // We use yield() a lot to avoid ANY watch dog activity of the program.
 //
@@ -1286,21 +1286,21 @@ void loop ()
 	uint32_t uSeconds;									// micro seconds
 	int packetSize;
 	uint32_t nowSeconds = now();
-	
+
 	// check for event value, which means that an interrupt has arrived.
 	// In this case we handle the interrupt ( e.g. message received)
 	// in userspace in loop().
 	//
 	stateMachine();									// do the state machine
-	
+
 	// After a quiet period, make sure we reinit the modem and state machine.
 	// The interval is in seconds (about 15 seconds) as this re-init
-	// is a heavy operation. 
+	// is a heavy operation.
 	// SO it will kick in if there are not many messages for the gateway.
 	// Note: Be careful that it does not happen too often in normal operation.
 	//
 	if ( ((nowSeconds - statr[0].tmst) > _MSG_INTERVAL ) &&
-		(msgTime <= statr[0].tmst) ) 
+		(msgTime <= statr[0].tmst) )
 	{
 #if DUSB>=1
 		if (( debug>=1 ) && ( pdebug & P_MAIN )) {
@@ -1327,7 +1327,7 @@ void loop ()
 	}
 
 #if A_SERVER==1
-	// Handle the Web server part of this sketch. Mainly used for administration 
+	// Handle the Web server part of this sketch. Mainly used for administration
 	// and monitoring of the node. This function is important so it is called at the
 	// start of the loop() function.
 	yield();
@@ -1345,7 +1345,7 @@ void loop ()
 
 	// I event is set, we know that we have a (soft) interrupt.
 	// After all necessary web/OTA services are scanned, we will
-	// reloop here for timing purposes. 
+	// reloop here for timing purposes.
 	// Do as less yield() as possible.
 	// XXX 180326
 	if (_event == 1) {
@@ -1353,7 +1353,7 @@ void loop ()
 	}
 	else yield();
 
-	
+
 	// If we are not connected, try to connect.
 	// We will not read Udp in this loop cycle then
 	if (WlanConnect(1) < 0) {
@@ -1364,8 +1364,8 @@ void loop ()
 		yield();
 		return;										// Exit loop if no WLAN connected
 	}
-	
-	// So if we are connected 
+
+	// So if we are connected
 	// Receive UDP PUSH_ACK messages from server. (*2, par. 3.3)
 	// This is important since the TTN broker will return confirmation
 	// messages on UDP for every message sent by the gateway. So we have to consume them.
@@ -1392,11 +1392,11 @@ void loop ()
 			}
 		}
 	}
-	
+
 	yield();					// XXX 26/12/2017
 
 	// stat PUSH_DATA message (*2, par. 4)
-	//	
+	//
 
     if ((nowSeconds - statTime) >= _STAT_INTERVAL) {	// Wake up every xx seconds
 #if DUSB>=1
@@ -1411,7 +1411,7 @@ void loop ()
 			Serial.println(F(" done"));
 			if (debug>=2) Serial.flush();
 		}
-#endif	
+#endif
 
 		// If the gateway behaves like a node, we do from time to time
 		// send a node message to the backend server.
@@ -1422,10 +1422,10 @@ void loop ()
 		if (gwayConfig.isNode) {
 			// Give way to internal some Admin if necessary
 			yield();
-			
+
 			// If the 1ch gateway is a sensor itself, send the sensor values
 			// could be battery but also other status info or sensor info
-		
+
 			if (sensorPacket() < 0) {
 #if DUSB>=1
 				Serial.println(F("sensorPacket: Error"));
@@ -1435,10 +1435,10 @@ void loop ()
 #endif
 		statTime = nowSeconds;
     }
-	
+
 	yield();
 
-	
+
 	// send PULL_DATA message (*2, par. 4)
 	//
 	nowSeconds = now();
@@ -1451,11 +1451,11 @@ void loop ()
 #endif
         pullData();										// Send PULL_DATA message to server
 		startReceiver();
-	
+
 		pulltime = nowSeconds;
     }
 
-	
+
 	// If we do our own NTP handling (advisable)
 	// We do not use the timer interrupt but use the timing
 	// of the loop() itself which is better for SPI
@@ -1472,6 +1472,6 @@ void loop ()
 		ntptimer = nowSeconds;
 	}
 #endif
-	
+
 
 }//loop
