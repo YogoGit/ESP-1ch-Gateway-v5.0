@@ -164,6 +164,7 @@ int WlanReadWpa() {
 	Serial.println(F(">"));
 #endif
 
+	return 0;
 }
 
 

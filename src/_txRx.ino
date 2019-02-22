@@ -18,8 +18,7 @@
 // This file contains the LoRa modem specific code enabling to receive
 // and transmit packages/messages.
 // ========================================================================================
-
-
+#include <Arduino.h>
 
 // ----------------------------------------------------------------------------
 // DOWN DOWN DOWN DOWN DOWN DOWN DOWN DOWN DOWN DOWN DOWN DOWN DOWN DOWN DOWN 
