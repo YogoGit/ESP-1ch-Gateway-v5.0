@@ -77,7 +77,6 @@ extern "C" {
 // ----------- Specific ESP32 stuff --------------
 
 #include "WiFi.h"
-#include <WiFiClient.h>
 #include <ESPmDNS.h>
 #include <SPIFFS.h>
 
