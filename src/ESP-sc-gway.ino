@@ -1092,9 +1092,9 @@ void setup()
     // After there is a WiFi router connection, we can also set the hostname.
     char *hostType;
 #if ESP32_ARCH == 1
-    hostType = "esp32-";
+    hostType = (char *)"esp32-";
 #else
-    hostType = "esp8266-";
+    hostType = (char *)"esp8266-";
 #endif
     sprintf(hostname, "%s%02x%02x%02x", hostType, MAC_array[3], MAC_array[4], MAC_array[5]);
     WiFi.setHostname(hostname);
