@@ -237,7 +237,6 @@ int sendPacket(uint8_t * buf, uint8_t length)
 // ----------------------------------------------------------------------------
 int buildPacket(uint32_t tmst, uint8_t *buff_up, struct LoraUp LoraUp, bool internal)
 {
-    char cfreq[12] = {0};                                // Character array to hold freq in MHz
     //lastTmst = tmst;                                    // Following/according to spec
 
     uint8_t *message = LoraUp.payLoad;
@@ -462,7 +461,9 @@ int buildPacket(uint32_t tmst, uint8_t *buff_up, struct LoraUp LoraUp, bool inte
 #endif
     buff_index += j;
 
-    ftoa((double)freq / 1000000, cfreq, 6);                    // XXX This can be done better
+    // XXX This can be done better
+    char cfreq[12] = {0};
+    ftoa((double)freq / 1000000, cfreq, 6);
     j = snprintf((char *)(buff_up + buff_index), TX_BUFF_SIZE - buff_index, ",\"chan\":%1u,\"rfch\":%1u,\"freq\":%s", 0, 0, cfreq);
     buff_index += j;
 
