@@ -196,11 +196,17 @@ void setRate(uint8_t sf, uint8_t crc)
             mc1 = 0x78;                 // SX1276_MC1_BW_125 ==0x70 | SX1276_MC1_CR_4_8 ==0x08
         } else {
             mc1 = 0x72;                 // SX1276_MC1_BW_125 ==0x70 | SX1276_MC1_CR_4_5 ==0x02
+#if _LFREQ == 915
+            mc1 |= 0x90;
+#endif
         }
         mc2 = ((sf << 4) | crc) & 0xFF; // crc is 0x00 or 0x04 ==SX1276_MC2_RX_PAYLOAD_CRCON
         mc3 = 0x04;                     // 0x04; SX1276_MC3_AGCAUTO
         if (sf == SF11 || sf == SF12) {
+#if _LFREQ == 915
+#else
             mc3 |= 0x08;                // 0x08 | 0x04
+#endif
         }
     }
 
