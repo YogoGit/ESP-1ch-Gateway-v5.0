@@ -73,7 +73,14 @@ see nothing on the Serial Monitor.
 3. Modify the _loraModem.h file and change the "struct pins" area and configure either for a traditional (probably not necessary if using a standard board)
 4. Edit the ESP-sc-gway.h file:
 - Make sure that __LFREQ is set properly for your environment (433, 868, or 915)
-- Update the AP_NAME and AP_PASSWD defines for your WiFi setup
+- Find the section where wpas wpa[] is set, and change the username/password
+   ```
+   wpas wpa[] = {
+        { "" , "" },                                                    // Reserved for WiFi Manager
+       { "MY_SSID", "MY_PASSWOD" },
+   ...
+   ```
+- Update the AP_NAME and AP_PASSWD defines for your WiFi setup (optional)
 - Ensure the _PIN_OUT and OLED are correct for your board
 5. Change the board in platformio.ini to match your board
 6. Build the firmware with
