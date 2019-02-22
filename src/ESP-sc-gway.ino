@@ -491,7 +491,6 @@ void setupTime() {
 // ----------------------------------------------------------------------------
 int readUdp(int packetSize)
 {
-    uint8_t protocol;
     uint16_t token;
     uint8_t ident;
     uint8_t buff[32];
@@ -548,7 +547,6 @@ int readUdp(int packetSize)
 
     // If it is not NTP it must be a LoRa message for gateway or node
     uint8_t * data = (uint8_t *)((uint8_t *)buff_down + 4);
-    protocol = buff_down[0];
     token = buff_down[2] * 256 + buff_down[1];
     ident = buff_down[3];
 
@@ -923,9 +921,6 @@ void sendstat()
     // 12-byte header    
     int stat_index = 12;
 
-    // get timestamp for statistics
-    time_t t = now();
-
     // XXX Using CET as the current timezone. Change to your timezone
     char stat_timestamp[32];                  // XXX was 24
     sprintf(stat_timestamp, "%04d-%02d-%02d %02d:%02d:%02d CET", year(), month(), day(), hour(), minute(), second());
@@ -1282,7 +1277,6 @@ void setup()
 // ----------------------------------------------------------------------------
 void loop()
 {
-    uint32_t uSeconds;
     int packetSize;
     uint32_t nowSeconds = now();
 
