@@ -1232,7 +1232,9 @@ static void wifiData()
         printIP((IPAddress)WiFi.gatewayIP(),'.', response);
         response += "</tr>";
         response += "<tr><td class=\"cell\">NTP Server</td><td class=\"cell\">" + String(NTP_TIMESERVER) + "</tr>";
+#ifdef _TTNSERVER
         response += "<tr><td class=\"cell\">LoRa Router</td><td class=\"cell\">" + String(_TTNSERVER) + "</tr>";
+#endif
         response += "<tr><td class=\"cell\">LoRa Router IP</td><td class=\"cell\">";
         printIP((IPAddress)ttnServer,'.', response);
         response += "</tr>";
