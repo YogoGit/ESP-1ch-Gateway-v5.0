@@ -12,7 +12,6 @@ without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
 
 Maintained by Maarten Westenberg (mw12554@hotmail.com)
 
-
 # Description
 
 First of all: PLEASE READ THIS FILE AND HTTP://THINGS4U.GITHUB.IO it should contain most of the 
@@ -26,7 +25,7 @@ on this code.
 I did find however that good soldering joints and wiring makes all the difference,
 so if you get resets you cannot explain, please have a second look at your wiring.
 
-This repository contains a proof-of-concept implementation of a single channel LoRaWAN gateway for the ESP8266. 
+This repository contains a proof-of-concept implementation of a single channel LoRaWAN gateway for the ESP8266/ESP32. 
 Starting version 5.2 also the ESP32 of TTGO (and others) is supported.
 The software implements a standard LoRa gateway with the following exceptions and changes:
 
@@ -67,25 +66,24 @@ only change the SSID/Password for your WiFi setup and the pins of your ESP8266 t
 This section describes the minimum of configuration necessary to get a working gateway which than can be 
 configured further using the webpage.
 
-1. Unpack the source code including the libraries in a separate folder.
+1. Install [PlatformIO](https://platformio.org/)
 2. Connect the gateway to a serial port of your computer, and configure that port in the IDE. 
 Switch on the Serial Monitor for the gateway. As the Wemos chip does not contain any code, you will probably 
 see nothing on the Serial Monitor.
-3. Modify the _loraModem.h file and change the "struct pins" area and configure either for a traditional
-(=Comresult) PCB or configure for a Hallard PCB where the dio0, dio1 and dio2 pins are shared. You HAVE to check 
-this section.
-4. Edit the ESP-sc-gway.h file and adapt the "wpas" structure. `Make sure that the first line of this structure 
-remains empty and put the SSID and Password of your router on the second line of the array.
-5. In the preferences part of the IDE, set the location of your sketch to the place where you put the 
-sketch on your computer. This will make sure that for example the required libraries that are shipped 
-with this sketch in the libraries folder can be found by the compiler
-6. If not yet done: Load the support for ESP8266 in your IDE. <Tools><Board><Board Manager...>
-7. Load the other necessary libraries that are not shipped with this sketch in your IDE. 
-Goto <Sketch><Include Library><Manage Libraries...> in the IDE to do so. 
-- ArduinoJson (version 5.13.1)
-- WifiManager (Version 0.12.0 by Tzapu)
-8. Compile the code and download the executable over USB to the gateway. If all is right, you should
-see the gateway starting up on the Serial Monitor.
+3. Modify the _loraModem.h file and change the "struct pins" area and configure either for a traditional (probably not necessary if using a standard board)
+4. Edit the ESP-sc-gway.h file:
+- Make sure that __LFREQ is set properly for your environment (433, 868, or 915)
+- Update the AP_NAME and AP_PASSWD defines for your WiFi setup
+- Ensure the _PIN_OUT and OLED are correct for your board
+5. Change the board in platformio.ini to match your board
+6. Build the firmware with
+   ```
+   % platformio run
+   ```
+7. Upload the firmware with
+   ```
+   % platformio run -t upload
+   ```
 9. Note the IP address that the device receives from your router. Use that IP address in a browser on 
 your computer to connect to the gateway with the browser.
 
@@ -132,15 +130,17 @@ Setting this parameter will also detemine some settings of the webserver.
  \#define DEBUG 1
 
  
-### Selecting you standard pin-out
+### Selecting standard pin-out
 
-We support two pin-out configurations out-of-the-box: HALLARD and COMPRESULT.
-If you use one of these two, just set the parameter to the right value.
+We support four pin-out configurations out-of-the-box: HALLARD and COMPRESULT,
+ESP32/Wemos, and ESP32/TTGO.
+If you use one of these, just set the parameter to the right value.
 If your pin definitions are different, update the loraModem.h file to reflect these settings.
 	1: HALLARD
-	2: COMRESULT pin out
-	3: ESP32 pin out
-	4: Other, define your own in loraModem.h
+	2: COMRESULT
+	3: ESP32/Wemos
+	4: ESP32/TTGO
+	5: Other, define your own in loraModem.h
 
  \#define _PIN_OUT 1
 
@@ -229,7 +229,7 @@ You are advised not to change the default setting of this parameter.
 
 By setting the OLED you configure the system to work with OLED panels over I2C.
 Some panels work by both SPI and I2C where I2c is solwer. However, since SPI is use for RFM95 transceiver 
-communication you are stronly discouvared using one of these as they will not work with this software.
+communication you are stronly discouraged to use one of these as they will not work with this software.
 Instead choose a OLED solution that works over I2C.
 
  \#define OLED 1
