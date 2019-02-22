@@ -155,7 +155,7 @@ If your pin definitions are different, update the loraModem.h file to reflect th
 ### Forcing a SPIFF format at startup
 
 The following parameter shoudl be set to 0 under normal circumstances.
-It does allow the system to foce formatting of the SPIFFS filesystem.
+It does allow the system to force formatting of the SPIFFS filesystem.
 
  \#define SPIFF_FORMAT 0  
  
