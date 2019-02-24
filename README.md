@@ -60,11 +60,10 @@ I'm still working on the ESP32 pin-out and functions (expected soon).
 
 # Getting Started
 
-It is recommended to compile and start the single channel gateway with as little modificatons as possible. 
-This means that you should use the default settings in the configuration files as much as possible and 
-only change the SSID/Password for your WiFi setup and the pins of your ESP8266 that you use in loraModem.h.
-This section describes the minimum of configuration necessary to get a working gateway which than can be 
-configured further using the webpage.
+It is recommended to compile and start the single channel gateway with as little modificatons as possible.  This means that you
+should use the default settings in the configuration files as much as possible and only change the SSID/Password for your WiFi setup
+and the pins of your ESP8266 that you use in loraModem.h.  This section describes the minimum of configuration necessary to get a
+working gateway which than can be configured further using the webpage.
 
 1. Install [PlatformIO](https://platformio.org/)
 2. Connect the gateway to a serial port of your computer, and configure that port in the IDE. 
@@ -94,8 +93,8 @@ see nothing on the Serial Monitor.
 9. Note the IP address that the device receives from your router. Use that IP address in a browser on 
 your computer to connect to the gateway with the browser.
 
-Now your gateway should be running. Use the webpage to set "debug" to 1 and you should be able to see packages
-coming in on the Serial monitor.
+Now your gateway should be running. Use the webpage to set "debug" to 1
+and you should be able to see packages coming in on the Serial monitor.
 
 
 # Configuration
@@ -108,42 +107,40 @@ There are two ways of changing the configuration of the single channel gateway:
 
 ## Editing the ESP-sc-gway.h file
 
-The ESP-sc-gway.h file contains all the user configurable settings. All have their definitions set through #define statements. 
-In general, setting a #define to 1 will enable the function and setting it to 0 will disable it. 
+The ESP-sc-gway.h file contains all the user configurable settings. All have their definitions set through *#define* statements.  In
+general, setting a #define to 1 will enable the function and setting it to 0 will disable it.
 
-Also, some settings cn be initialised by setting their value with a #define but can be changed at runtime in the web interface.
-For some settings, disabling the function with a #define will remove the function from the webserver as well.
+Also, some settings cn be initialised by setting their value with a #define but can be changed at runtime in the web interface.  For
+some settings, disabling the function with a #define will remove the function from the webserver as well.
 
-NOTE regarding memory usage: The ESP8266 has an enormous amount of memory available for program space and SPIFFS filesystem. 
-However the memory available for heap and variables is limited to about 80K bytes (For the ESP-32 this is higher). 
-The user is advised to turn off functions not used in order to save on memory usage. 
-If the heap drops below 18 KBytes some functions may not behave as expected (in extreme case the program may crash).
+NOTE regarding memory usage: The ESP chipsets have an enormous amount of memory available for program space and SPIFFS filesystem.
+However the memory available for heap and variables is limited to about 80K bytes (For the ESP-32 this is higher).  The user is
+advised to turn off functions not used in order to save on memory usage.  If the heap drops below 18 KBytes some functions may not
+behave as expected (in extreme cases the program may crash).
 
 
 ### Setting USB
 
-The user can determine whether or not the USB console is used for output messages.
-When setting DUSB to 0 all output by Serial is disabled 
-(actually the Serial statements are not included in the code).
+The user can determine whether or not the USB console is used for output messages.  When setting DUSB to 0 all output by Serial is
+disabled and the Serial statements are not included in the firmware.
 
  \#define DUSB 1
 
 
 ### Debug
 
-The user can set the initial value of the DEBUG parameter. 
-Setting this parameter will also detemine some settings of the webserver.
+The user can set the initial value of the DEBUG parameter. Setting this parameter will also detemine some settings of the
+webserver.
 
  \#define DEBUG 1
 
  
 ### Selecting standard pin-out
 
-We support four pin-out configurations out-of-the-box: HALLARD and COMPRESULT,
-ESP32/Wemos, and ESP32/TTGO.
-If you use one of these, just set the parameter to the right value.
-If your pin definitions are different, update the loraModem.h file to reflect these settings.
-	1: HALLARD
+We support four pin-out configurations out-of-the-box: HALLARD and COMPRESULT, ESP32/Wemos, and ESP32/TTGO. If you use one of these,
+just set the parameter to the right value.  If your pin definitions are different, update the loraModem.h file to reflect these
+settings.
+    1: HALLARD
 	2: COMRESULT
 	3: ESP32/Wemos
 	4: ESP32/TTGO
@@ -154,64 +151,57 @@ If your pin definitions are different, update the loraModem.h file to reflect th
 
 ### Forcing a SPIFF format at startup
 
-The following parameter shoudl be set to 0 under normal circumstances.
-It does allow the system to force formatting of the SPIFFS filesystem.
+The following parameter should be set to 0 under normal circumstances.  It does allow the system to force formatting of the SPIFFS
+filesystem.
 
  \#define SPIFF_FORMAT 0  
  
 ### Setting Spreading Factor
 
-Set the _SPREADING factor to the desired SF7, SF8 - SF12 value. 
-Please note that this value is closely related to teh value used for _CAD. 
-If _CAD is enabled, the value of _SPREADING is not used by the gateway as it has all sreading factors enabled.
+Set the _SPREADING factor to the desired SF7, SF8 - SF12 value.  Please note that this value is closely related to the value used
+for _CAD.  If _CAD is enabled, the value of _SPREADING is not used by the gateway as it has all spreading factors enabled.
 
  \#define _SPREADING SF9
  
-Please note that the default frequency used is 868.1 MHz which can be changed in the loraModem.h file. 
-The user is advised NOT to change this etting and only use the default 868.1 MHz frequency.
+Please note that the default frequency used is 868.1 MHz unless it was changed in the loraModem.h file.
 
 
 ### Channel Activity Detection
 
-Channel Activity Detection (CAD) is a function of the LoRa RFM95 chip to detect incoming messages (activity). 
-These incoming messages might arrive on any of the well know spreading factors SF7-SF12. 
-By enabling CAD, the gateway can receive messages of any of the spreading factors.
+Channel Activity Detection (CAD) is a function of the LoRa RFM95 chip to detect incoming messages (activity).  These incoming
+messages might arrive on any of the well know spreading factors SF7-SF12.  By enabling CAD, the gateway can receive messages of any
+of the spreading factors.
 
-Actually it is used in normal operation to tell the receiver that another signal is using the 
-channel already.
+It is also used in normal operation to tell the receiver that another signal is using the channel already.
 
-The CAD functionality comes at a (little) price: The chip will not be able to receive very weak signals as 
-the CAD function will use the RSSI register setting of the chip to determine whether or not it received a 
-signal (or just noise). As a result, very weak signals are not received which means that the range of the 
-gateway will be reduced in CAD mode.
+The CAD functionality comes at a (little) price: The chip will not be able to receive very weak signals as the CAD function will use
+the RSSI register setting of the chip to determine whether or not it received a signal (or just noise). As a result, very weak
+signals are not received which means that the range of the gateway will be reduced in CAD mode.
 
  \#define _CAD 1
 
  
 ### Over the Air Updates (OTA)
 
-As from version 4.0.6 the gateway allows over the air updating if the setting A_OTA is on. 
-The over the air software requires once setting of the 4.0.6 version over USB to the gateway,
-after which the software is (default) enabled for use.
+Since version 4.0.6 the gateway allows over the air updating if the setting A_OTA is enabled. The over the air software requires
+once setting of the 4.0.6 version over USB to the gateway, after which the software is (default) enabled for use.
 
-The first release only supports OTA function using the IDE which in practice means the IDE has to 
-be on the same network segment as the gateway.
+The first release only supports OTA function using the IDE which in practice means the IDE has to be on the same network segment as
+the gateway.
 
-Note: You have to use Bonjour software (Apple) on your network somewhere. A version is available
-for most platforms (shipped with iTunes for windows for example). The Bonjour software enables the
-gateway to use mDNS to resolve the gateway ID set by OTA after which download ports show up in the IDE.
+Note: You have to use Bonjour software (Apple) on your network somewhere. A version is available for most platforms (shipped with
+iTunes for windows for example). The Bonjour software enables the gateway to use mDNS to resolve the gateway ID set by OTA after
+which download ports show up in the IDE.
 
 Todo: The OTA software has not (yet) been tested in conjuction with the WiFiManager software.
 
  \#define A_OTA 1  
 
-
-
 ### Enable Webserver
 
-This setting enables the webserver. Although the webserver itself takes a lot of memory, it greatly helps 
-to configure the gatewayat run-time and inspects its behaviour. It also provides statistics of last messages received.
-The A_REFRESH parameter defines whether the webserver should renew every X seconds.
+This setting enables the webserver. Although the webserver itself takes a lot of memory, it greatly helps to configure the gateway
+at run-time and inspect its behaviour. It also provides statistics of last messages received.  The A_REFRESH parameter defines
+whether the webserver should renew every X seconds.
 
  \#define A_SERVER 1				// Define local WebServer only if this define is set  
  \#define A_REFRESH 0				// Will the webserver refresh or not?  
@@ -224,7 +214,7 @@ The A_REFRESH parameter defines whether the webserver should renew every X secon
 
 In order to have the gateway send downlink messages on the pre-set spreading factor and on the default frequency, 
 you have to set the _STRICT_1Ch parameter to 1. Note that when it is not set to 1, the gateway will respond to 
-downlink requests with the frequency and spreading factor set by the backend server. And at the moment TTN 
+downlink requests with the frequency and spreading factor set by the backend server. Curerntly, the moment TTN 
 responds to downlink messages for SF9-SF12 in the RX2 timeslot and with frequency 869.525MHz and on SF12 
 (according to the LoRa standard when sending in the RX2 timeslot). 
 
@@ -237,7 +227,7 @@ You are advised not to change the default setting of this parameter.
 By setting the OLED you configure the system to work with OLED panels over I2C.
 Some panels work by both SPI and I2C where I2c is solwer. However, since SPI is use for RFM95 transceiver 
 communication you are stronly discouraged to use one of these as they will not work with this software.
-Instead choose a OLED solution that works over I2C.
+Instead choose an OLED solution that works over I2C.
 
  \#define OLED 1
 
@@ -247,28 +237,21 @@ The following values are defined for OLED:
 
 ### Define to gather statistics
 
-When this is defined (==1) we will gather the statistics of every message and output
-it to the SPIFFS filesystem. We make sure that we use a number of files with each a fixed number of records
-for statistics. The REC number tells us how many records are allowed in each statistics file.
-As soon as the REC number is higher than the number of records allowed, we open a new file.
-Once the number of files exceeds the NUM amount of statistics files, we delete the oldeest file and 
-open a new file.
-When selecting the "log" button on top of the GUI screen, all rthe log files are ouptu to the USB
-Serial device. This way, we can examine far more records than fitting the GUI screen or the Serial
-output.
+When this is defined (== 1) we will gather the statistics of every message and output it to the SPIFFS filesystem. We make sure that
+we use a number of files, each containing a fixed number of records for statistics. The REC number tells us how many records are
+allowed in each statistics file.  As soon as the REC number is higher than the number of records allowed, we open a new file.  Once
+the number of files exceeds the specified NUM of statistics files, we delete the oldest file and open a new file.  When selecting the
+"log" button on top of the GUI screen, all the log files are output to the USB Serial device. This way, we can examine far more
+records than could fit on the GUI screen or the Serial output.
  
  \#define STAT_LOG 1
  
-
- 
-Setting the I2C SDA/SCL pins is done in the ESP-sc-gway.h file right after the #define of OLED.
-Standard the ESP8266 uses pins D1 and D2 for the I2C bus SCL and SDA lines but these can be changed by the user.
-Normally thsi is not necessary. 
+Setting the I2C SDA/SCL pins is done in the ESP-sc-gway.h file right after the #define of OLED.  Standard the ESP8266 uses pins D1
+and D2 for the I2C bus SCL and SDA lines but these can be changed by the user.  Normally this is not necessary.
 The OLED functions are found in the _loraModem.ino file, and can be adapted to show other fields. 
-The functions are called when a message is received(!) and therefore potentionally this will add to the
-instability of the ESP as these functions may require more time than expected.
-If so, swithc off the OLED function or build in a function in the main loop() that displays in user time 
-(not interrupt).
+The functions are called when a message is received(!) and potentionally this will add to the instability of the ESP as these
+functions may require more time than expected.  If so, switch off the OLED function or build in a function in the main loop() that
+displays in user time (not interrupt).
 
 ### Setting TTN server
 
@@ -284,7 +267,6 @@ In case you setup your own server, you can specify as follows using your own rou
  \#define _THINGSERVER "your_server.com"			// Server URL of the LoRa udp.js server program  
  \#define _THINGPORT 1701							// Your UDP server should listen to this port  
 
- 
 ### Gateway Identity
 Set the identity parameters for your gateway:   
 
@@ -295,7 +277,6 @@ Set the identity parameters for your gateway:
 \#define _LON 5.00  
 \#define _ALT 0  
 
-
 ### Using the gateway as a sensor node
 
 It is possible to use the gateway as a node. This way, local/internal sensor values are reported.
@@ -303,7 +284,7 @@ This is a cpu and memory intensive function as making a sensor message involves 
 
  \#define GATEWAYNODE 0  
 
-Further below in the configuration file, it is possible to set the address and other  LoRa information of the gateway node.
+Further below in the configuration file, it is possible to set the address and other LoRa information of the gateway node.
 
  \#if GATEWAYNODE==1  
  \#define _DEVADDR { 0x26, 0x01, 0x15, 0x3D }  
@@ -312,11 +293,10 @@ Further below in the configuration file, it is possible to set the address and o
  \#define _SENSOR_INTERVAL 300  
  \#endif  
 
-
 ### Connect to WiFi with WiFiManager
 
 The easiest way to configure the Gateway on WiFi is by using the WiFimanager function. This function works out of the box. 
-WiFiManager will put the gateway in accesspoint mode so that you can connect to it as a WiFi accesspoint. 
+WiFiManager will put the gateway in AP mode so that you can connect to it as a WiFi accesspoint. 
 
  \#define WIFIMANAGER 0  
 
@@ -333,7 +313,7 @@ The gateway will then reset and bind to the given network. If all goes well you 
 If necessary, you can delete the current access point in the webserver and power cycle the gateway to force it to read the wpa array again.
 
 ## Specify a name for known nodes
-- It is possible to substitue the address for known nodes with a chosen name. This will greatly enhance the readibility of the statistics overview 
+- It is possible to substitue the address for known nodes with a chosen name. This will greatly enhance the readability of the statistics overview 
 especially for your own nodes, Now you will find names for your own nodes in the webserver.
 - set the TRUSTED_NODES to either 0 (no names), 1 (specify names for known nodes) and 2 (Do not show or transfer to TTN other than known nodes)
 - Although this will work with OTAA nodes as well, please remind that OTAA nodes will change
@@ -354,7 +334,7 @@ The built-in webserver can be used to display status and debugging information.
 Also the webserver allows the user to change certain settings at run-time such as the debug level or switch on 
 and off the CAD function.
 It can be accessed with the following URL: http://<YourGatewayIP>:80 where <YourGatewayIP> is the IP given by 
-the router to the ESP8266 at startup. It is probably something like 192.168.1.XX
+the router to the ESP at startup. It is probably something like 192.168.1.XX
 The webserver shows various configuration settings as well as providing functions to set parameters.
 
 The following parameters can be set using the webServer. 
@@ -392,11 +372,9 @@ For convenience, only the custom libraries are also found in this github reposit
 Please note that they are NOT part of the ESP 1channel gateway and may have their own licensing.
 However, these libraries are not part of the single-channel Gateway software.
 
-
 # Pin Connections
 
 See http://things4u.github.io in the hardware section for building and connection instructions.
-
 
 # To-DO
 
@@ -408,9 +386,7 @@ The following things are still on my wish list to make to the single channel gat
 - Use the SPIFFS for storing .css files
 - Look at CLass B and C support
 
-
 # License
 
-The source files of the gateway sketch in this repository is made available under the MIT
-license. The libraries included in this repository are included for convenience only and all have their own license, 
-and are not part of the ESP 1ch gateway code.
+The source files of the gateway sketch in this repository is made available under the MIT license. The libraries included in this
+repository are included for convenience only and all have their own license, and are not part of the ESP 1ch gateway code.
